@@ -6,15 +6,13 @@
     <title>Dashboard de Performance</title>
     <style>
         :root {
-            --bg-color: #12121f;
-            --sidebar-color: #1a1b26;
-            --card-color: #24273a;
-            --text-primary: #cad3f5;
-            --text-secondary: #a6adc8;
-            --highlight-primary: #8a78f2;
-            --highlight-secondary: #b4a9f5;
-            --green: #a6e3a1;
-            --red: #f38ba8;
+            --bg-color: #1C1C1C;
+            --card-color: #2a2a2a;
+            --text-primary: #ECECEC;
+            --text-secondary: #a0a0a0;
+            --accent-1: #F9AC6E; /* Laranja */
+            --accent-2: #EF5A8F; /* Rosa */
+            --accent-3: #654599; /* Roxo */
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -35,26 +33,18 @@
         /* --- Sidebar --- */
         .sidebar {
             width: 260px;
-            background-color: var(--sidebar-color);
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--card-color);
             padding: 2rem 1.5rem;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: transform 0.3s ease-in-out;
         }
-        .logo-container {
-            margin-bottom: 3rem;
-        }
-        .logo-container img {
-            max-width: 150px;
-        }
-        .menu-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .menu-item {
-            margin-bottom: 0.5rem;
-        }
+        .logo-container { margin-bottom: 3rem; }
+        .logo-container img { max-width: 150px; }
+        .menu-list { list-style: none; padding: 0; margin: 0; }
+        .menu-item { margin-bottom: 0.5rem; }
         .menu-link {
             display: flex;
             align-items: center;
@@ -64,11 +54,7 @@
             border-radius: 8px;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
-        .menu-link svg {
-            width: 20px;
-            height: 20px;
-            margin-right: 1rem;
-        }
+        .menu-link svg { width: 20px; height: 20px; margin-right: 1rem; }
         .menu-link.active, .menu-link:hover {
             background-color: var(--card-color);
             color: var(--text-primary);
@@ -80,201 +66,204 @@
             padding: 2rem 3rem;
             overflow-y: auto;
         }
-        header h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        header p {
-            color: var(--text-secondary);
+        header { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 2rem;
         }
+        header h1 { font-size: 2rem; font-weight: 600; margin: 0; }
+        header p { color: var(--text-secondary); margin: 0.5rem 0 0 0; }
+        .mobile-menu-btn { display: none; }
 
-        /* --- Stats Grid --- */
-        .stats-grid {
+        /* --- Metrics Grid --- */
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
-            margin-bottom: 2.5rem;
         }
-        .stat-card {
+        .metric-card {
             background-color: var(--card-color);
             padding: 1.5rem;
             border-radius: 12px;
+            display: flex;
+            flex-direction: column;
         }
-        .stat-card .label {
-            font-size: 0.9rem;
+        .metric-card h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
+            margin: 0 0 1rem 0;
         }
-        .stat-card .value {
-            font-size: 2.25rem;
+        .metric-card .main-value {
+            font-size: 2.5rem;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
-        .stat-card .sub-text {
-            font-size: 0.85rem;
+        .metric-card .sub-value {
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
 
-        /* --- Content Grid --- */
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
-        }
-        .chart-container {
-            background-color: var(--card-color);
-            padding: 1.5rem;
-            border-radius: 12px;
-        }
-        .chart-container h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-        
-        /* Progress Bar Chart */
-        .progress-list { list-style: none; padding: 0; }
-        .progress-item { margin-bottom: 1.5rem; }
-        .progress-item .info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-        .progress-item .info .platform { font-weight: 500; }
-        .progress-item .info .percent { color: var(--text-secondary); }
-        .progress-bar-bg { background-color: var(--sidebar-color); height: 8px; border-radius: 4px; overflow: hidden; }
-        .progress-bar-fill {
-            background-color: var(--highlight-primary); height: 100%; border-radius: 4px;
-            width: 0;
-            transition: width 1.5s ease-out;
-        }
-
-        /* Donut Chart */
-        .donut-chart-wrapper {
+        /* Chart Styles */
+        .chart-wrapper {
+            flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 2.5rem;
+            margin-top: 1rem;
         }
-        .donut-chart {
-            width: 180px; height: 180px; border-radius: 50%;
+        .pie-chart {
+            width: 150px; height: 150px; border-radius: 50%;
             position: relative;
         }
-        .donut-chart::before { /* The donut hole */
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 70%;
-            background-color: var(--card-color);
-            border-radius: 50%;
-            z-index: 2;
+        .pie-chart.gender-chart {
+            /* 55% Mulheres / 45% Homens */
+            background: conic-gradient(var(--accent-1) 0% 55%, var(--accent-2) 55% 100%);
         }
-        .donut-chart-visual {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(var(--highlight-primary) 0deg, var(--sidebar-color) 0deg);
-            animation: fill-donut 1.5s 0.5s forwards;
+        .pie-chart.platform-chart {
+            /* 88% Insta / 12% Face */
+            background: conic-gradient(var(--accent-1) 0% 88%, var(--accent-2) 88% 100%);
         }
-        .legend { list-style: none; padding: 0; }
-        .legend li { margin-bottom: 1rem; display: flex; align-items: center; }
+        .pie-chart.placement-chart {
+            /* 44% Feed, 38% Stories, 16% Reels, 2% Outros */
+            background: conic-gradient(
+                var(--accent-1) 0% 44%, 
+                var(--accent-2) 44% 82%, 
+                var(--accent-3) 82% 98%, 
+                var(--text-secondary) 98% 100%
+            );
+        }
+        .chart-legend {
+            list-style: none;
+            padding-left: 2rem;
+            margin: 0;
+        }
+        .chart-legend li { display: flex; align-items: center; margin-bottom: 1rem; font-size: 0.9rem;}
+        .chart-legend li:last-child { margin-bottom: 0; }
         .legend-color { width: 16px; height: 16px; border-radius: 4px; margin-right: 0.75rem; }
 
-        @keyframes fill-donut {
-            /* (27/61)*360=159deg, (23/61)*360=136deg, (10/61)*360=59deg */
-            to { background: conic-gradient(
-                    var(--highlight-primary) 0deg 159deg, 
-                    var(--highlight-secondary) 159deg 295deg, /* 159+136 */
-                    var(--green) 295deg 354deg, /* 295+59 */
-                    var(--text-secondary) 354deg 360deg
-                ); 
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 992px) {
+            .dashboard-container { flex-direction: column; }
+            .sidebar {
+                position: fixed;
+                left: 0; top: 0; bottom: 0;
+                transform: translateX(-100%);
+                z-index: 1000;
+                border-right: none;
             }
+            .sidebar.visible {
+                transform: translateX(0);
+            }
+            .main-content { padding: 1.5rem; }
+            .metrics-grid {
+                grid-template-columns: 1fr; /* Stack cards vertically */
+            }
+            header h1 { font-size: 1.5rem; }
+            .mobile-menu-btn {
+                display: block;
+                background: var(--card-color);
+                border: none;
+                color: var(--text-primary);
+                padding: 0.75rem;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .overlay {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 999;
+                display: none;
+            }
+            .overlay.visible { display: block; }
         }
     </style>
 </head>
 <body>
-
+    <div class="overlay" id="overlay"></div>
     <div class="dashboard-container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="logo-container">
-                <!-- COLOQUE A URL DA SUA LOGO AQUI -->
-                <img src="https://via.placeholder.com/150x50/FFFFFF/1a1b26?text=Sua+Logo" alt="Logo da Agência">
+                <img src="https://via.placeholder.com/150x50/FFFFFF/1c1c1c?text=Sua+Logo" alt="Logo da Agência">
             </div>
             <ul class="menu-list">
-                <li class="menu-item">
-                    <a href="#" class="menu-link active">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="menu-item"><a href="#" class="menu-link"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6M9 19H5a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M9 19a2 2 0 002 2h2a2 2 0 002-2M9 19V5"/></svg> <span>Relatórios</span></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg> <span>Públicos</span></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> <span>Metas</span></a></li>
+                <li class="menu-item"><a href="#" class="menu-link active"><svg fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z"/></svg><span>Dashboard</span></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg> <span>Relatórios</span></a></li>
             </ul>
         </aside>
 
         <main class="main-content">
             <header>
-                <h1>Dashboard de Performance</h1>
-                <p>Resultados da Campanha de Mensagens - Julho de 2025</p>
+                <div>
+                    <h1>Dashboard de Julho</h1>
+                    <p>Resultados da Campanha de Mensagens</p>
+                </div>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 5.75H19.25"></path><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 12H19.25"></path><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 18.25H19.25"></path></svg>
+                </button>
             </header>
 
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="label">Valor Total Investido</div>
-                    <div class="value counter" data-prefix="R$ " data-target="552.73">R$ 0,00</div>
-                    <div class="sub-text">Campanha de Julho</div>
+            <section class="metrics-grid">
+                <!-- Leads Gerados -->
+                <div class="metric-card">
+                    <h2>Leads Gerados</h2>
+                    <div class="main-value counter" data-target="69">0</div>
+                    <div class="sub-value">Novas conversas iniciadas</div>
                 </div>
-                <div class="stat-card">
-                    <div class="label">Total de Leads Gerados</div>
-                    <div class="value counter" data-target="69">0</div>
-                    <div class="sub-text">Novas conversas iniciadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="label">Custo Médio por Lead</div>
-                    <div class="value counter" data-prefix="R$ " data-target="8.01">R$ 0,00</div>
-                    <div class="sub-text">Custo por nova conversa</div>
-                </div>
-                <div class="stat-card">
-                    <div class="label">Público Principal</div>
-                    <div class="value counter" data-suffix="%" data-target="77">0%</div>
-                    <div class="sub-text">Leads na faixa de 35-54 anos</div>
-                </div>
-            </section>
 
-            <section class="content-grid">
-                <div class="chart-container">
-                    <h2>Origem por Plataforma</h2>
-                    <ul class="progress-list">
-                        <li class="progress-item">
-                            <div class="info">
-                                <span class="platform">Instagram</span>
-                                <span class="percent">88%</span>
-                            </div>
-                            <div class="progress-bar-bg"><div class="progress-bar-fill" data-width="88%"></div></div>
-                        </li>
-                        <li class="progress-item">
-                            <div class="info">
-                                <span class="platform">Facebook</span>
-                                <span class="percent">12%</span>
-                            </div>
-                            <div class="progress-bar-bg"><div class="progress-bar-fill" data-width="12%"></div></div>
-                        </li>
-                    </ul>
+                <!-- Custo por Lead -->
+                <div class="metric-card">
+                    <h2>Custo Médio por Lead</h2>
+                    <div class="main-value counter" data-target="8.01" data-prefix="R$ ">R$ 0,00</div>
+                    <div class="sub-value">Custo por nova conversa</div>
                 </div>
-                <div class="chart-container">
-                    <h2>Leads por Posicionamento (Instagram)</h2>
-                    <div class="donut-chart-wrapper">
-                        <div class="donut-chart">
-                            <div class="donut-chart-visual"></div>
-                        </div>
-                        <ul class="legend">
-                            <li><span class="legend-color" style="background-color: var(--highlight-primary);"></span>Feed (44%)</li>
-                            <li><span class="legend-color" style="background-color: var(--highlight-secondary);"></span>Stories (38%)</li>
-                            <li><span class="legend-color" style="background-color: var(--green);"></span>Reels (16%)</li>
-                            <li><span class="legend-color" style="background-color: var(--text-secondary);"></span>Outros (2%)</li>
+
+                <!-- Gênero -->
+                <div class="metric-card">
+                    <h2>Gênero dos Leads</h2>
+                    <div class="chart-wrapper">
+                        <div class="pie-chart gender-chart"></div>
+                        <ul class="chart-legend">
+                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Mulheres (55%)</li>
+                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Homens (45%)</li>
                         </ul>
                     </div>
+                </div>
+
+                <!-- Plataforma -->
+                <div class="metric-card">
+                    <h2>Origem da Plataforma</h2>
+                    <div class="chart-wrapper">
+                        <div class="pie-chart platform-chart"></div>
+                        <ul class="chart-legend">
+                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Instagram (88%)</li>
+                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Facebook (12%)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Posicionamentos -->
+                <div class="metric-card">
+                    <h2>Posicionamentos (Instagram)</h2>
+                    <div class="chart-wrapper">
+                         <div class="pie-chart placement-chart"></div>
+                        <ul class="chart-legend">
+                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Feed (44%)</li>
+                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Stories (38%)</li>
+                            <li><span class="legend-color" style="background:var(--accent-3);"></span>Reels (16%)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Valor Investido -->
+                <div class="metric-card">
+                    <h2>Valor Total Investido</h2>
+                    <div class="main-value counter" data-target="552.73" data-prefix="R$ ">R$ 0,00</div>
+                    <div class="sub-value">Orçamento total da campanha</div>
                 </div>
             </section>
         </main>
@@ -282,9 +271,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Animação dos Contadores
+            // --- Animação dos Contadores ---
             const counters = document.querySelectorAll('.counter');
-            counters.forEach(counter => {
+            const animateCounter = (counter) => {
                 const target = +counter.getAttribute('data-target');
                 const prefix = counter.getAttribute('data-prefix') || '';
                 const suffix = counter.getAttribute('data-suffix') || '';
@@ -292,27 +281,44 @@
                 let start = 0;
                 const increment = target / (duration / 16);
 
-                const updateCounter = () => {
+                const update = () => {
                     start += increment;
                     if (start < target) {
                         let isFloat = (target % 1 !== 0);
                         counter.innerText = prefix + start.toLocaleString('pt-BR', { minimumFractionDigits: isFloat ? 2 : 0, maximumFractionDigits: isFloat ? 2 : 0 }) + suffix;
-                        requestAnimationFrame(updateCounter);
+                        requestAnimationFrame(update);
                     } else {
                         let isFloat = (target % 1 !== 0);
                         counter.innerText = prefix + target.toLocaleString('pt-BR', { minimumFractionDigits: isFloat ? 2 : 0, maximumFractionDigits: isFloat ? 2 : 0 }) + suffix;
                     }
                 };
-                requestAnimationFrame(updateCounter);
-            });
+                requestAnimationFrame(update);
+            };
 
-            // Animação das Barras de Progresso
-            const progressBars = document.querySelectorAll('.progress-bar-fill');
-            setTimeout(() => {
-                progressBars.forEach(bar => {
-                    bar.style.width = bar.getAttribute('data-width');
+            // Usar Intersection Observer para animar somente quando visível
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
                 });
-            }, 500); // Pequeno delay para efeito visual
+            }, { threshold: 0.5 });
+
+            counters.forEach(counter => observer.observe(counter));
+
+            // --- Menu Mobile ---
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const overlay = document.getElementById('overlay');
+
+            const toggleMenu = () => {
+                sidebar.classList.toggle('visible');
+                overlay.classList.toggle('visible');
+            };
+
+            menuBtn.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
         });
     </script>
 </body>
