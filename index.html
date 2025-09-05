@@ -1,158 +1,408 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maple Bear Dashboard - Leads e Matrículas</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.10/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maple Bear Dashboard 🍁📚✨</title>
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
 </head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel">
-    // Dados simulados (substituir por integração com API do n8n)
-    const initialData = {
-      leads: [
-        { id: 1, name: "Ana Silva", email: "ana@example.com", status: "Novo", unit: "Petrolina", date: "2025-09-01" },
-        { id: 2, name: "João Santos", email: "joao@example.com", status: "Qualificado", unit: "Petrolina", date: "2025-09-02" },
-        { id: 3, name: "Maria Oliveira", email: "maria@example.com", status: "Não Qualificado", unit: "Petrolina", date: "2025-09-03" },
-      ],
-      enrollments: [
-        { id: 1, name: "Ana Silva", status: "Confirmada", unit: "Petrolina", date: "2025-09-04" },
-        { id: 2, name: "João Santos", status: "Pendente", unit: "Petrolina", date: "2025-09-04" },
-      ],
-      appointments: [
-        { id: 1, name: "Ana Silva", date: "2025-09-05 10:00", unit: "Petrolina", status: "Agendado" },
-        { id: 2, name: "João Santos", date: "2025-09-06 14:00", unit: "Petrolina", status: "Agendado" },
-      ],
-    };
+<body class="bg-gray-100 font-sans antialiased">
+    <div id="root"></div>
 
-    // Componente de Card para métricas
-    const MetricCard = ({ title, value, emoji }) => (
-      <div className="bg-white p-4 rounded-lg shadow-md flex items-center">
-        <span className="text-2xl mr-2">{emoji}</span>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
-          <p className="text-2xl font-bold text-blue-600">{value}</p>
-        </div>
-      </div>
-    );
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useCallback } = React;
 
-    // Componente de Tabela para listagem
-    const DataTable = ({ title, data, columns }) => (
-      <div className="mt-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">{title}</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-lg shadow-md">
-            <thead>
-              <tr className="bg-blue-100 text-left">
-                {columns.map((col, index) => (
-                  <th key={index} className="p-3 text-gray-700">{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => (
-                <tr key={index} className="border-t">
-                  {Object.values(item).map((value, i) => (
-                    <td key={i} className="p-3 text-gray-600">{value}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
+        // --- Paleta de Cores Inspirada em bearlead.com.br/agente/ ---
+        const colors = {
+            primaryBlue: '#194a8d', // Azul escuro para títulos e destaques
+            lightBlue: '#bfdbfe',  // Azul claro para cabeçalhos de tabela
+            accentBlue: '#3b82f6', // Azul de acento para botões e links
+            textColor: '#333333',  // Cor de texto geral
+            white: '#ffffff',
+            softGray: '#f3f4f6'   // Fundo geral
+        };
 
-    // Componente de Filtro
-    const Filter = ({ units, onUnitChange, onDateChange }) => (
-      <div className="flex space-x-4 mb-6">
-        <select
-          className="p-2 border rounded-lg"
-          onChange={(e) => onUnitChange(e.target.value)}
-        >
-          <option value="">Todas as Unidades</option>
-          {units.map((unit, index) => (
-            <option key={index} value={unit}>{unit}</option>
-          ))}
-        </select>
-        <input
-          type="date"
-          className="p-2 border rounded-lg"
-          onChange={(e) => onDateChange(e.target.value)}
-        />
-      </div>
-    );
+        // --- Componente: MetricCard ---
+        const MetricCard = ({ title, value, emoji }) => (
+            <div className="bg-white rounded-lg shadow-md p-6 text-center transform hover:scale-105 transition-transform duration-200">
+                <div className="text-4xl mb-2">{emoji}</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-1">{title}</h3>
+                <p className="text-4xl font-bold" style={{ color: colors.primaryBlue }}>{value}</p>
+            </div>
+        );
 
-    // Componente Principal
-    const App = () => {
-      const [leads, setLeads] = React.useState(initialData.leads);
-      const [enrollments, setEnrollments] = React.useState(initialData.enrollments);
-      const [appointments, setAppointments] = React.useState(initialData.appointments);
-      const [selectedUnit, setSelectedUnit] = React.useState("");
-      const [selectedDate, setSelectedDate] = React.useState("");
+        // --- Componente: DataTable ---
+        const DataTable = ({ title, columns, data }) => (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <h3 className="text-xl font-semibold p-4" style={{ backgroundColor: colors.lightBlue, color: colors.primaryBlue }}>{title}</h3>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                {columns.map((col, index) => (
+                                    <th
+                                        key={index}
+                                        scope="col"
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider"
+                                    >
+                                        {col}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {data.length > 0 ? data.map((row, rowIndex) => (
+                                <tr key={rowIndex} className="hover:bg-gray-50">
+                                    {columns.map((col, colIndex) => (
+                                        <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                            {row[col.toLowerCase().replace(/\s/g, '')] || '-'}
+                                        </td>
+                                    ))}
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                                        Nenhum dado encontrado para o período selecionado.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
 
-      // Filtrar dados com base na unidade e data
-      const filterData = (data) => {
-        return data.filter((item) => {
-          const matchesUnit = selectedUnit ? item.unit === selectedUnit : true;
-          const matchesDate = selectedDate ? item.date.startsWith(selectedDate) : true;
-          return matchesUnit && matchesDate;
-        });
-      };
+        // --- Componente: LineChart (Simplificado) ---
+        // Este é um componente de gráfico de linha simplificado usando SVG para fins de demonstração.
+        // Para uma solução de produção, considere bibliotecas como Chart.js ou Recharts.
+        const LineChart = ({ title, dataPoints, width = 600, height = 200 }) => {
+            if (!dataPoints || dataPoints.length === 0) {
+                return (
+                    <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h3 className="text-xl font-semibold mb-4" style={{ color: colors.primaryBlue }}>{title}</h3>
+                        <p className="text-center text-gray-500">Nenhum dado para o gráfico.</p>
+                    </div>
+                );
+            }
 
-      const filteredLeads = filterData(leads);
-      const filteredEnrollments = filterData(enrollments);
-      const filteredAppointments = filterData(appointments);
+            const maxVal = Math.max(...dataPoints.map(p => p.value)) * 1.1; // 10% de margem
+            const minVal = Math.min(...dataPoints.map(p => p.value));
+            const yOffset = minVal > 0 ? minVal * 0.9 : 0; // Se valores forem positivos, comece um pouco abaixo do menor valor.
+            const adjustedMaxVal = maxVal - yOffset;
 
-      const units = [...new Set([...leads, ...enrollments, ...appointments].map(item => item.unit))];
+            const getX = (index) => (index / (dataPoints.length - 1)) * width;
+            const getY = (value) => height - ((value - yOffset) / adjustedMaxVal) * height;
 
-      return (
-        <div className="container mx-auto p-6">
-          <h1 className="text-3xl font-bold text-blue-800 mb-6">
-            🍁 Maple Bear Dashboard 📚✨
-          </h1>
-          
-          {/* Filtros */}
-          <Filter
-            units={units}
-            onUnitChange={setSelectedUnit}
-            onDateChange={setSelectedDate}
-          />
+            const points = dataPoints.map((point, i) => `${getX(i)},${getY(point.value)}`).join(' ');
 
-          {/* Métricas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <MetricCard title="Leads Totais" value={filteredLeads.length} emoji="📊" />
-            <MetricCard title="Matrículas Confirmadas" value={filteredEnrollments.filter(e => e.status === "Confirmada").length} emoji="🎉" />
-            <MetricCard title="Agendamentos" value={filteredAppointments.length} emoji="🗓️" />
-          </div>
+            return (
+                <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+                    <h3 className="text-xl font-semibold mb-4" style={{ color: colors.primaryBlue }}>{title}</h3>
+                    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
+                        {/* Linhas de grade Y */}
+                        {[0.25, 0.5, 0.75, 1].map((factor, i) => (
+                            <line
+                                key={`y-grid-${i}`}
+                                x1="0"
+                                y1={height - (height * factor)}
+                                x2={width}
+                                y2={height - (height * factor)}
+                                stroke="#e0e0e0"
+                                strokeDasharray="4 4"
+                            />
+                        ))}
+                        {/* Linha do gráfico */}
+                        <polyline
+                            fill="none"
+                            stroke={colors.accentBlue}
+                            strokeWidth="3"
+                            points={points}
+                        />
+                        {/* Pontos de dados */}
+                        {dataPoints.map((point, i) => (
+                            <circle
+                                key={i}
+                                cx={getX(i)}
+                                cy={getY(point.value)}
+                                r="4"
+                                fill={colors.accentBlue}
+                                stroke="white"
+                                strokeWidth="2"
+                            />
+                        ))}
+                        {/* Labels X (datas/categorias) */}
+                        {dataPoints.map((point, i) => (
+                            <text
+                                key={`label-x-${i}`}
+                                x={getX(i)}
+                                y={height + 15}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill={colors.textColor}
+                            >
+                                {point.label}
+                            </text>
+                        ))}
+                        {/* Labels Y (valores) - Simplificado */}
+                        <text x="-10" y="10" textAnchor="end" fontSize="10" fill={colors.textColor}>
+                            {Math.round(adjustedMaxVal + yOffset)}
+                        </text>
+                        <text x="-10" y={height - 5} textAnchor="end" fontSize="10" fill={colors.textColor}>
+                            {Math.round(yOffset)}
+                        </text>
+                    </svg>
+                </div>
+            );
+        };
 
-          {/* Tabelas */}
-          <DataTable
-            title="Leads 🍁"
-            data={filteredLeads.map(({ id, name, email, status, unit, date }) => ({ ID: id, Nome: name, Email: email, Status: status, Unidade: unit, Data: date }))}
-            columns={["ID", "Nome", "Email", "Status", "Unidade", "Data"]}
-          />
-          <DataTable
-            title="Matrículas 🐻"
-            data={filteredEnrollments.map(({ id, name, status, unit, date }) => ({ ID: id, Nome: name, Status: status, Unidade: unit, Data: date }))}
-            columns={["ID", "Nome", "Status", "Unidade", "Data"]}
-          />
-          <DataTable
-            title="Agendamentos 📚"
-            data={filteredAppointments.map(({ id, name, date, unit, status }) => ({ ID: id, Nome: name, Data: date, Unidade: unit, Status: status }))}
-            columns={["ID", "Nome", "Data", "Unidade", "Status"]}
-          />
-        </div>
-      );
-    };
+        // --- Componente Principal: App ---
+        const App = () => {
+            const [leads, setLeads] = useState([]);
+            const [enrollments, setEnrollments] = useState([]);
+            const [appointments, setAppointments] = useState([]);
+            const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
-    // Renderizar o aplicativo
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+            const generateMockData = useCallback(() => {
+                const unit = 'Petrolina';
+                const today = new Date(selectedDate);
+                const pastDays = Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - i);
+                    return d.toISOString().split('T')[0];
+                }).reverse(); // Last 7 days, oldest first
+
+                // Mock Leads Data (more dynamic)
+                const mockLeads = pastDays.flatMap((date, index) => [
+                    { id: 100 + index * 3, name: `Ana Silva ${index+1}`, email: `ana${index+1}@example.com`, status: 'Novo', unit, date },
+                    { id: 101 + index * 3, name: `Bruno Costa ${index+1}`, email: `bruno${index+1}@example.com`, status: (index % 2 === 0 ? 'Qualificado' : 'Novo'), unit, date },
+                    { id: 102 + index * 3, name: `Carla Dias ${index+1}`, email: `carla${index+1}@example.com`, status: 'Não Qualificado', unit, date: new Date(new Date(date).setDate(new Date(date).getDate() + 1)).toISOString().split('T')[0] }, // Slightly later
+                ]).filter(lead => lead.date >= selectedDate); // Only show leads from selected date onwards
+
+                // Mock Enrollments Data (more dynamic)
+                const mockEnrollments = pastDays.flatMap((date, index) => [
+                    { id: 200 + index * 2, name: `Ana Silva ${index+1}`, status: (index % 3 === 0 ? 'Confirmada' : 'Pendente'), unit, date },
+                    { id: 201 + index * 2, name: `Fernanda Lima ${index+1}`, status: 'Confirmada', unit, date: new Date(new Date(date).setDate(new Date(date).getDate() + 2)).toISOString().split('T')[0] },
+                ]).filter(enrollment => enrollment.date >= selectedDate);
+
+                // Mock Appointments Data (more dynamic and new fields)
+                const mockAppointments = pastDays.flatMap((date, index) => [
+                    {
+                        id: 300 + index * 3,
+                        name: `Gustavo Pereira ${index+1}`,
+                        email: `gustavo${index+1}@example.com`,
+                        whatsapp: `+55 (11) 9${Math.floor(Math.random() * 9000) + 1000}-000${index+1}`,
+                        origemLead: (index % 2 === 0 ? 'Instagram' : 'Google Ads'),
+                        nomeFilho: `Filho G ${index+1}`,
+                        idadeFilho: 5 + index,
+                        date: `${date} 10:00`,
+                        unit,
+                        status: (index % 3 === 0 ? 'Agendado' : 'Realizado')
+                    },
+                    {
+                        id: 301 + index * 3,
+                        name: `Helena Santos ${index+1}`,
+                        email: `helena${index+1}@example.com`,
+                        whatsapp: `+55 (11) 9${Math.floor(Math.random() * 9000) + 1000}-000${index+2}`,
+                        origemLead: 'Facebook',
+                        nomeFilho: `Filha H ${index+1}`,
+                        idadeFilho: 3 + index,
+                        date: `${date} 14:30`,
+                        unit,
+                        status: 'Agendado'
+                    },
+                    {
+                        id: 302 + index * 3,
+                        name: `Igor Almeida ${index+1}`,
+                        email: `igor${index+1}@example.com`,
+                        whatsapp: `+55 (11) 9${Math.floor(Math.random() * 9000) + 1000}-000${index+3}`,
+                        origemLead: 'Referência',
+                        nomeFilho: `Filho I ${index+1}`,
+                        idadeFilho: 6 + index,
+                        date: `${new Date(new Date(date).setDate(new Date(date).getDate() + 1)).toISOString().split('T')[0]} 09:00`,
+                        unit,
+                        status: 'Cancelado'
+                    },
+                ]).filter(appointment => appointment.date.split(' ')[0] >= selectedDate);
+
+
+                setLeads(mockLeads);
+                setEnrollments(mockEnrollments);
+                setAppointments(mockAppointments);
+            }, [selectedDate]);
+
+            useEffect(() => {
+                // Simulação de chamada de API
+                // Em um ambiente real, você faria algo como:
+                /*
+                const fetchDataFromApi = async () => {
+                    try {
+                        const leadsResponse = await fetch(`https://sua-api-n8n.com/leads?date=${selectedDate}`);
+                        const leadsData = await leadsResponse.json();
+                        setLeads(leadsData);
+
+                        const enrollmentsResponse = await fetch(`https://sua-api-n8n.com/enrollments?date=${selectedDate}`);
+                        const enrollmentsData = await enrollmentsResponse.json();
+                        setEnrollments(enrollmentsData);
+
+                        const appointmentsResponse = await fetch(`https://sua-api-n8n.com/appointments?date=${selectedDate}`);
+                        const appointmentsData = await appointmentsResponse.json();
+                        setAppointments(appointmentsData);
+
+                    } catch (error) {
+                        console.error("Erro ao buscar dados da API:", error);
+                        // Em caso de erro, ainda podemos usar os dados mockados
+                        generateMockData();
+                    }
+                };
+                fetchDataFromApi();
+                */
+
+                // Por enquanto, usamos apenas dados simulados
+                generateMockData();
+            }, [selectedDate, generateMockData]); // Recarrega dados quando a data selecionada muda
+
+            // Métricas calculadas
+            const totalLeads = leads.length;
+            const totalConfirmedEnrollments = enrollments.filter(e => e.status === 'Confirmada').length;
+            const totalAppointments = appointments.length;
+
+            // Dados para os gráficos de linha
+            const getChartData = (dataArray, dateKey = 'date') => {
+                const counts = {};
+                dataArray.forEach(item => {
+                    const date = item[dateKey].split(' ')[0]; // Pega apenas a data
+                    counts[date] = (counts[date] || 0) + 1;
+                });
+
+                // Preencher com 0 para datas sem eventos, para a última semana
+                const today = new Date(selectedDate);
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - i);
+                    return d.toISOString().split('T')[0];
+                }).reverse();
+
+                return last7Days.map(date => ({
+                    label: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                    value: counts[date] || 0
+                }));
+            };
+
+            const leadsChartData = useMemo(() => getChartData(leads), [leads]);
+            const enrollmentsChartData = useMemo(() => getChartData(enrollments), [enrollments]);
+            const appointmentsChartData = useMemo(() => getChartData(appointments, 'date'), [appointments]);
+
+
+            return (
+                <div className="min-h-screen" style={{ backgroundColor: colors.softGray }}>
+                    {/* Header */}
+                    <header className="p-6 shadow-md" style={{ backgroundColor: colors.primaryBlue }}>
+                        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between">
+                            <h1 className="text-3xl font-bold mb-4 md:mb-0 text-white flex items-center">
+                                Maple Bear Dashboard <span className="ml-2 text-yellow-300">🍁📚✨</span>
+                            </h1>
+                            <div className="flex items-center space-x-4">
+                                <label htmlFor="date-filter" className="text-white text-lg">Data:</label>
+                                <input
+                                    type="date"
+                                    id="date-filter"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="p-2 rounded-md shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                                    style={{ borderColor: colors.accentBlue, color: colors.textColor }}
+                                />
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="container mx-auto p-6 mt-8">
+                        {/* Cards de Métricas */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            <MetricCard title="Total de Leads" value={totalLeads} emoji="📊" />
+                            <MetricCard title="Matrículas Confirmadas" value={totalConfirmedEnrollments} emoji="🎉" />
+                            <MetricCard title="Total de Agendamentos" value={totalAppointments} emoji="🗓️" />
+                        </div>
+
+                        {/* Gráficos de Linha */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+                            <LineChart title="Leads por Dia (Últimos 7 dias)" dataPoints={leadsChartData} />
+                            <LineChart title="Matrículas por Dia (Últimos 7 dias)" dataPoints={enrollmentsChartData} />
+                            <LineChart title="Agendamentos por Dia (Últimos 7 dias)" dataPoints={appointmentsChartData} />
+                        </div>
+
+
+                        {/* Tabelas de Dados */}
+                        <div className="space-y-8">
+                            <DataTable
+                                title="Leads"
+                                columns={['ID', 'Nome', 'Email', 'Status', 'Unidade', 'Data']}
+                                data={leads.map(lead => ({
+                                    id: lead.id,
+                                    nome: lead.name,
+                                    email: lead.email,
+                                    status: lead.status,
+                                    unidade: lead.unit,
+                                    data: lead.date
+                                }))}
+                            />
+
+                            <DataTable
+                                title="Matrículas"
+                                columns={['ID', 'Nome', 'Status', 'Unidade', 'Data']}
+                                data={enrollments.map(enrollment => ({
+                                    id: enrollment.id,
+                                    nome: enrollment.name,
+                                    status: enrollment.status,
+                                    unidade: enrollment.unit,
+                                    data: enrollment.date
+                                }))}
+                            />
+
+                            <DataTable
+                                title="Agendamentos"
+                                columns={['ID', 'Nome', 'Email', 'WhatsApp', 'Origem do Lead', 'Nome do Filho', 'Idade do Filho', 'Data', 'Unidade', 'Status']}
+                                data={appointments.map(app => ({
+                                    id: app.id,
+                                    nome: app.name,
+                                    email: app.email,
+                                    whatsapp: app.whatsapp,
+                                    origemdolead: app.origemLead,
+                                    nomedofilho: app.nomeFilho,
+                                    idadedofilho: app.idadeFilho,
+                                    data: app.date,
+                                    unidade: app.unit,
+                                    status: app.status
+                                }))}
+                            />
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
 </body>
 </html>
