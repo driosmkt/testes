@@ -1,325 +1,158 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Performance</title>
-    <style>
-        :root {
-            --bg-color: #1C1C1C;
-            --card-color: #2a2a2a;
-            --text-primary: #ECECEC;
-            --text-secondary: #a0a0a0;
-            --accent-1: #F9AC6E; /* Laranja */
-            --accent-2: #EF5A8F; /* Rosa */
-            --accent-3: #654599; /* Roxo */
-        }
-
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-        body, html {
-            margin: 0; padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-size: 16px;
-        }
-
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* --- Sidebar --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--bg-color);
-            border-right: 1px solid var(--card-color);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: transform 0.3s ease-in-out;
-        }
-        .logo-container { margin-bottom: 3rem; }
-        .logo-container img { max-width: 150px; }
-        .menu-list { list-style: none; padding: 0; margin: 0; }
-        .menu-item { margin-bottom: 0.5rem; }
-        .menu-link {
-            display: flex;
-            align-items: center;
-            padding: 0.9rem 1rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .menu-link svg { width: 20px; height: 20px; margin-right: 1rem; }
-        .menu-link.active, .menu-link:hover {
-            background-color: var(--card-color);
-            color: var(--text-primary);
-        }
-
-        /* --- Main Content --- */
-        .main-content {
-            flex-grow: 1;
-            padding: 2rem 3rem;
-            overflow-y: auto;
-        }
-        header { 
-            display: flex; 
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 2rem;
-        }
-        header h1 { font-size: 2rem; font-weight: 600; margin: 0; }
-        header p { color: var(--text-secondary); margin: 0.5rem 0 0 0; }
-        .mobile-menu-btn { display: none; }
-
-        /* --- Metrics Grid --- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-        .metric-card {
-            background-color: var(--card-color);
-            padding: 1.5rem;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-        .metric-card h2 {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin: 0 0 1rem 0;
-        }
-        .metric-card .main-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        .metric-card .sub-value {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Chart Styles */
-        .chart-wrapper {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        .pie-chart {
-            width: 150px; height: 150px; border-radius: 50%;
-            position: relative;
-        }
-        .pie-chart.gender-chart {
-            /* 55% Mulheres / 45% Homens */
-            background: conic-gradient(var(--accent-1) 0% 55%, var(--accent-2) 55% 100%);
-        }
-        .pie-chart.platform-chart {
-            /* 88% Insta / 12% Face */
-            background: conic-gradient(var(--accent-1) 0% 88%, var(--accent-2) 88% 100%);
-        }
-        .pie-chart.placement-chart {
-            /* 44% Feed, 38% Stories, 16% Reels, 2% Outros */
-            background: conic-gradient(
-                var(--accent-1) 0% 44%, 
-                var(--accent-2) 44% 82%, 
-                var(--accent-3) 82% 98%, 
-                var(--text-secondary) 98% 100%
-            );
-        }
-        .chart-legend {
-            list-style: none;
-            padding-left: 2rem;
-            margin: 0;
-        }
-        .chart-legend li { display: flex; align-items: center; margin-bottom: 1rem; font-size: 0.9rem;}
-        .chart-legend li:last-child { margin-bottom: 0; }
-        .legend-color { width: 16px; height: 16px; border-radius: 4px; margin-right: 0.75rem; }
-
-        /* --- Mobile Responsiveness --- */
-        @media (max-width: 992px) {
-            .dashboard-container { flex-direction: column; }
-            .sidebar {
-                position: fixed;
-                left: 0; top: 0; bottom: 0;
-                transform: translateX(-100%);
-                z-index: 1000;
-                border-right: none;
-            }
-            .sidebar.visible {
-                transform: translateX(0);
-            }
-            .main-content { padding: 1.5rem; }
-            .metrics-grid {
-                grid-template-columns: 1fr; /* Stack cards vertically */
-            }
-            header h1 { font-size: 1.5rem; }
-            .mobile-menu-btn {
-                display: block;
-                background: var(--card-color);
-                border: none;
-                color: var(--text-primary);
-                padding: 0.75rem;
-                border-radius: 8px;
-                cursor: pointer;
-            }
-            .overlay {
-                position: fixed;
-                top: 0; left: 0;
-                width: 100%; height: 100%;
-                background-color: rgba(0,0,0,0.5);
-                z-index: 999;
-                display: none;
-            }
-            .overlay.visible { display: block; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maple Bear Dashboard - Leads e Matrículas</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.10/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="logo-container">
-                <img src="https://via.placeholder.com/150x50/FFFFFF/1c1c1c?text=Sua+Logo" alt="Logo da Agência">
-            </div>
-            <ul class="menu-list">
-                <li class="menu-item"><a href="#" class="menu-link active"><svg fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z"/></svg><span>Dashboard</span></a></li>
-                <li class="menu-item"><a href="#" class="menu-link"><svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg> <span>Relatórios</span></a></li>
-            </ul>
-        </aside>
+  <div id="root"></div>
+  <script type="text/babel">
+    // Dados simulados (substituir por integração com API do n8n)
+    const initialData = {
+      leads: [
+        { id: 1, name: "Ana Silva", email: "ana@example.com", status: "Novo", unit: "Petrolina", date: "2025-09-01" },
+        { id: 2, name: "João Santos", email: "joao@example.com", status: "Qualificado", unit: "Petrolina", date: "2025-09-02" },
+        { id: 3, name: "Maria Oliveira", email: "maria@example.com", status: "Não Qualificado", unit: "Petrolina", date: "2025-09-03" },
+      ],
+      enrollments: [
+        { id: 1, name: "Ana Silva", status: "Confirmada", unit: "Petrolina", date: "2025-09-04" },
+        { id: 2, name: "João Santos", status: "Pendente", unit: "Petrolina", date: "2025-09-04" },
+      ],
+      appointments: [
+        { id: 1, name: "Ana Silva", date: "2025-09-05 10:00", unit: "Petrolina", status: "Agendado" },
+        { id: 2, name: "João Santos", date: "2025-09-06 14:00", unit: "Petrolina", status: "Agendado" },
+      ],
+    };
 
-        <main class="main-content">
-            <header>
-                <div>
-                    <h1>Dashboard de Julho</h1>
-                    <p>Resultados da Campanha de Mensagens</p>
-                </div>
-                <button class="mobile-menu-btn" id="mobile-menu-btn">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 5.75H19.25"></path><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 12H19.25"></path><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.75 18.25H19.25"></path></svg>
-                </button>
-            </header>
+    // Componente de Card para métricas
+    const MetricCard = ({ title, value, emoji }) => (
+      <div className="bg-white p-4 rounded-lg shadow-md flex items-center">
+        <span className="text-2xl mr-2">{emoji}</span>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+          <p className="text-2xl font-bold text-blue-600">{value}</p>
+        </div>
+      </div>
+    );
 
-            <section class="metrics-grid">
-                <!-- Leads Gerados -->
-                <div class="metric-card">
-                    <h2>Leads Gerados</h2>
-                    <div class="main-value counter" data-target="69">0</div>
-                    <div class="sub-value">Novas conversas iniciadas</div>
-                </div>
+    // Componente de Tabela para listagem
+    const DataTable = ({ title, data, columns }) => (
+      <div className="mt-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">{title}</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full bg-white rounded-lg shadow-md">
+            <thead>
+              <tr className="bg-blue-100 text-left">
+                {columns.map((col, index) => (
+                  <th key={index} className="p-3 text-gray-700">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item, index) => (
+                <tr key={index} className="border-t">
+                  {Object.values(item).map((value, i) => (
+                    <td key={i} className="p-3 text-gray-600">{value}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
 
-                <!-- Custo por Lead -->
-                <div class="metric-card">
-                    <h2>Custo Médio por Lead</h2>
-                    <div class="main-value counter" data-target="8.01" data-prefix="R$ ">R$ 0,00</div>
-                    <div class="sub-value">Custo por nova conversa</div>
-                </div>
+    // Componente de Filtro
+    const Filter = ({ units, onUnitChange, onDateChange }) => (
+      <div className="flex space-x-4 mb-6">
+        <select
+          className="p-2 border rounded-lg"
+          onChange={(e) => onUnitChange(e.target.value)}
+        >
+          <option value="">Todas as Unidades</option>
+          {units.map((unit, index) => (
+            <option key={index} value={unit}>{unit}</option>
+          ))}
+        </select>
+        <input
+          type="date"
+          className="p-2 border rounded-lg"
+          onChange={(e) => onDateChange(e.target.value)}
+        />
+      </div>
+    );
 
-                <!-- Gênero -->
-                <div class="metric-card">
-                    <h2>Gênero dos Leads</h2>
-                    <div class="chart-wrapper">
-                        <div class="pie-chart gender-chart"></div>
-                        <ul class="chart-legend">
-                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Mulheres (55%)</li>
-                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Homens (45%)</li>
-                        </ul>
-                    </div>
-                </div>
+    // Componente Principal
+    const App = () => {
+      const [leads, setLeads] = React.useState(initialData.leads);
+      const [enrollments, setEnrollments] = React.useState(initialData.enrollments);
+      const [appointments, setAppointments] = React.useState(initialData.appointments);
+      const [selectedUnit, setSelectedUnit] = React.useState("");
+      const [selectedDate, setSelectedDate] = React.useState("");
 
-                <!-- Plataforma -->
-                <div class="metric-card">
-                    <h2>Origem da Plataforma</h2>
-                    <div class="chart-wrapper">
-                        <div class="pie-chart platform-chart"></div>
-                        <ul class="chart-legend">
-                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Instagram (88%)</li>
-                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Facebook (12%)</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Posicionamentos -->
-                <div class="metric-card">
-                    <h2>Posicionamentos (Instagram)</h2>
-                    <div class="chart-wrapper">
-                         <div class="pie-chart placement-chart"></div>
-                        <ul class="chart-legend">
-                            <li><span class="legend-color" style="background:var(--accent-1);"></span>Feed (44%)</li>
-                            <li><span class="legend-color" style="background:var(--accent-2);"></span>Stories (38%)</li>
-                            <li><span class="legend-color" style="background:var(--accent-3);"></span>Reels (16%)</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Valor Investido -->
-                <div class="metric-card">
-                    <h2>Valor Total Investido</h2>
-                    <div class="main-value counter" data-target="552.73" data-prefix="R$ ">R$ 0,00</div>
-                    <div class="sub-value">Orçamento total da campanha</div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Animação dos Contadores ---
-            const counters = document.querySelectorAll('.counter');
-            const animateCounter = (counter) => {
-                const target = +counter.getAttribute('data-target');
-                const prefix = counter.getAttribute('data-prefix') || '';
-                const suffix = counter.getAttribute('data-suffix') || '';
-                const duration = 1500;
-                let start = 0;
-                const increment = target / (duration / 16);
-
-                const update = () => {
-                    start += increment;
-                    if (start < target) {
-                        let isFloat = (target % 1 !== 0);
-                        counter.innerText = prefix + start.toLocaleString('pt-BR', { minimumFractionDigits: isFloat ? 2 : 0, maximumFractionDigits: isFloat ? 2 : 0 }) + suffix;
-                        requestAnimationFrame(update);
-                    } else {
-                        let isFloat = (target % 1 !== 0);
-                        counter.innerText = prefix + target.toLocaleString('pt-BR', { minimumFractionDigits: isFloat ? 2 : 0, maximumFractionDigits: isFloat ? 2 : 0 }) + suffix;
-                    }
-                };
-                requestAnimationFrame(update);
-            };
-
-            // Usar Intersection Observer para animar somente quando visível
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        animateCounter(entry.target);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            counters.forEach(counter => observer.observe(counter));
-
-            // --- Menu Mobile ---
-            const sidebar = document.getElementById('sidebar');
-            const menuBtn = document.getElementById('mobile-menu-btn');
-            const overlay = document.getElementById('overlay');
-
-            const toggleMenu = () => {
-                sidebar.classList.toggle('visible');
-                overlay.classList.toggle('visible');
-            };
-
-            menuBtn.addEventListener('click', toggleMenu);
-            overlay.addEventListener('click', toggleMenu);
+      // Filtrar dados com base na unidade e data
+      const filterData = (data) => {
+        return data.filter((item) => {
+          const matchesUnit = selectedUnit ? item.unit === selectedUnit : true;
+          const matchesDate = selectedDate ? item.date.startsWith(selectedDate) : true;
+          return matchesUnit && matchesDate;
         });
-    </script>
+      };
+
+      const filteredLeads = filterData(leads);
+      const filteredEnrollments = filterData(enrollments);
+      const filteredAppointments = filterData(appointments);
+
+      const units = [...new Set([...leads, ...enrollments, ...appointments].map(item => item.unit))];
+
+      return (
+        <div className="container mx-auto p-6">
+          <h1 className="text-3xl font-bold text-blue-800 mb-6">
+            🍁 Maple Bear Dashboard 📚✨
+          </h1>
+          
+          {/* Filtros */}
+          <Filter
+            units={units}
+            onUnitChange={setSelectedUnit}
+            onDateChange={setSelectedDate}
+          />
+
+          {/* Métricas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <MetricCard title="Leads Totais" value={filteredLeads.length} emoji="📊" />
+            <MetricCard title="Matrículas Confirmadas" value={filteredEnrollments.filter(e => e.status === "Confirmada").length} emoji="🎉" />
+            <MetricCard title="Agendamentos" value={filteredAppointments.length} emoji="🗓️" />
+          </div>
+
+          {/* Tabelas */}
+          <DataTable
+            title="Leads 🍁"
+            data={filteredLeads.map(({ id, name, email, status, unit, date }) => ({ ID: id, Nome: name, Email: email, Status: status, Unidade: unit, Data: date }))}
+            columns={["ID", "Nome", "Email", "Status", "Unidade", "Data"]}
+          />
+          <DataTable
+            title="Matrículas 🐻"
+            data={filteredEnrollments.map(({ id, name, status, unit, date }) => ({ ID: id, Nome: name, Status: status, Unidade: unit, Data: date }))}
+            columns={["ID", "Nome", "Status", "Unidade", "Data"]}
+          />
+          <DataTable
+            title="Agendamentos 📚"
+            data={filteredAppointments.map(({ id, name, date, unit, status }) => ({ ID: id, Nome: name, Data: date, Unidade: unit, Status: status }))}
+            columns={["ID", "Nome", "Data", "Unidade", "Status"]}
+          />
+        </div>
+      );
+    };
+
+    // Renderizar o aplicativo
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
